@@ -1,0 +1,42 @@
+This is a proff-of-concept thing so that commands you run in a shell
+each get their own input&output zone, called cards, instead of
+everything being mixed into a single byte stream on a single tty. 
+They are called cards because one possible user interface is that
+a boxed card shape appears under your shell command line and the
+I/O for that shell command happens inside the box. The next shell
+prompt then appears below the box. Cards could be scrollable
+independently from their containing card.
+
+If the IO streams from multiple cards are all muxed in some format
+on the original tty's byte stream (based presumably on escape
+sequences that let the other end of the byte stream demux which
+card all the input and output belongs to) then cards can go
+through, e.g., an ssh session.
+
+The intention is that the shell would contain this functionality,
+but for now there are two parts:
+
+- The "deck", which is the server. It is meant to be run as a parent
+process to your toplevel shell, so you can start it as:
+
+    exec deck $SHELL
+
+It runs a single process (its argument) as the first card.
+
+There are two sample implementations of the deck right now:
+
+ * "deck", a sample stub tty-based implementation that muxes output
+   from each card to the original terminal in a debug-style format.
+   It sends all input to card #0.
+ * "vtedeck", a sample X11-based implementation that opens a window
+   for each card.
+
+- The "card", which is the client. You prefix the command you want
+to run with "card" and it runs in a new card instead of the card
+its parent process runs in.
+
+Example:
+
+$ ./deck sh
+$ ./card ls
+(output of ls goes in a separate card)

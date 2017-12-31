@@ -1,0 +1,4 @@
+*.o
+/card
+/deck
+/vtedeck
