@@ -10,4 +10,12 @@ int stdio_connected_to_tty(int *stdio_is_my_tty);
 
 void setnonblock(int fd);
 
+/* Launch a thread to receive fds on a socket, one at a time. Each time
+   one is received, the callback is called with the new fd and the byte
+   data that came with it, NUL-terminated. */
+void receive_fds(int fd,
+	void (*callback)(void *arg, int fd, const char *data), void *callback_arg,
+	pthread_t *ret_thread_id
+);
+
 #endif /* _DECK_UTIL_H */

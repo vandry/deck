@@ -11,7 +11,7 @@
 struct cardserver;
 struct interactor;
 
-struct cardserver *cardserver(struct interactor *, int master_sock, int initial_client);
+struct cardserver *cardserver(struct interactor *, int initial_client);
 void cardserver_quit(struct cardserver *);
 
 #endif /* _DECK_CARDSERVER_H */

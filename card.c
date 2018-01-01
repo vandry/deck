@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include "global.h"
 #include "cardclient.h"
-#include "cardserver.h"
 #include "util.h"
 
 int
@@ -23,9 +23,9 @@ main(int argc, char **argv)
 			argv[0]);
 		return 3;
 	}
-	var = getenv("CARDSERVER_SOCKET");
-	if (!var) {
-		fprintf(stderr, "No $CARDSERVER_SOCKET. "
+	var = getenv(CARDDECK_SOCKET_VAR_NAME);
+	if ((!var) || (!(*var))) {
+		fprintf(stderr, "No $" CARDDECK_SOCKET_VAR_NAME ". "
 			"Will exec child without doing anything instead.\n");
 fallback:
 		execvp(argv[1], argv+1);

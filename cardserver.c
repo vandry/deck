@@ -79,33 +79,10 @@ input_callback(void *data, size_t count, int card_number, void *arg)
 	}
 }
 
-static void *
-acceptor(void *arg)
-{
-	struct cardserver *srv = (struct cardserver *)arg;
-	struct sockaddr_un sa;
-	socklen_t salen;
-	int s;
-
-	for (;;) {
-		salen = sizeof(sa);
-		s = accept(srv->master_sock, (struct sockaddr *)(&sa), &salen);
-		if (s < 0) {
-			perror("cardserver accept");
-			sleep(1);
-			continue;
-		}
-		new_stub(srv, s);
-	}
-	return NULL;
-}
-
 struct cardserver *
-cardserver(struct interactor *interactor, int master_sock, int initial_client)
+cardserver(struct interactor *interactor, int initial_client)
 {
 	struct cardserver *srv;
-	pthread_t thread_id;
-	pthread_attr_t thread_attr;
 
 	srv = malloc(sizeof(*srv));
 	if (!srv) {
@@ -121,12 +98,6 @@ cardserver(struct interactor *interactor, int master_sock, int initial_client)
 	pthread_mutex_init(&(srv->tty_next_owner_lock), NULL);
 
 	new_stub(srv, initial_client);
-
-	listen(master_sock, 15);
-	srv->master_sock = master_sock;
-	pthread_attr_init(&thread_attr);
-	pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);
-	pthread_create(&thread_id, &thread_attr, acceptor, srv);
 
 	return srv;
 }

@@ -110,8 +110,8 @@ copy_to_client(void *arg)
 		c->input_head = i->next;
 		free(i);
 	}
-	free(c);
 	pthread_mutex_unlock(&(c->input_lock));
+	free(c);
 	return NULL;
 }
 
@@ -295,19 +295,37 @@ copy_from_client(void *arg)
 	return NULL;
 }
 
-void
-new_stub(struct cardserver *srv, int fd)
+static void
+new_card(void *arg, int fd, const char *name)
 {
+	struct cardserver *srv = (struct cardserver *)arg;
+
 	pthread_t thread_id;
 	pthread_attr_t thread_attr;
 	int pipefd[2];
+	size_t namelen;
 
-	struct cardclient *c = malloc(sizeof(struct cardclient));
+	if ((!name) || (!(*name))) {
+		close(fd);
+		return;
+	}
+	namelen = strlen(name);
+	/* Card names must be .-terminated on the wire. This is because they
+	   cannot be empty and .-terminating them is the easiest way to
+	   generate appropriate names for the root card on down. But we do
+	   not want this dot for presentation. */
+	if (name[namelen-1] != '.') {
+		close(fd);
+		return;
+	}
+
+	struct cardclient *c = malloc(sizeof(struct cardclient) + strlen(name));
 	if (!c) {
 		perror("new_stub: malloc failure");
 		close(fd);
 		return;
 	}
+	memset(c, 0, sizeof(*c));
 	c->sock = fd;
 	c->next = NULL;
 	c->srv = srv;
@@ -340,6 +358,12 @@ new_stub(struct cardserver *srv, int fd)
 
 	pthread_create(&thread_id, &thread_attr, copy_from_client, c);
 	pthread_create(&thread_id, &thread_attr, copy_to_client, c);
+}
+
+void
+new_stub(struct cardserver *srv, int fd)
+{
+	receive_fds(fd, new_card, srv, NULL);
 }
 
 void

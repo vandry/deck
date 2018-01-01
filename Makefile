@@ -14,7 +14,7 @@ deck.o: deck.c util.h cardclient.h cardserver.h interactor.h
 
 util.o: util.c util.h
 
-cardclient.o: cardclient.c cardclient.h util.h
+cardclient.o: cardclient.c cardclient.h util.h global.h
 
 cardserver.o: cardserver.c cardserver.h cardmux.h stub.h util.h interactor.h
 
@@ -22,7 +22,7 @@ stub.o: stub.c cardmux.h stub.h util.h interactor.h
 
 tty.o: tty.c interactor.h util.h
 
-card.o: card.c cardclient.h
+card.o: card.c cardclient.h global.h
 
 vte.o: vte.c interactor.h
 	$(CC) -c $(CFLAGS) `pkg-config --cflags vte` -o $@ vte.c
