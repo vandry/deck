@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include "cardclient.h"
 #include "cardserver.h"
-#include "interactor.h"
+#include "renderer.h"
 #include "util.h"
 
 int
@@ -43,16 +43,16 @@ fallback:
 		goto fallback;
 	}
 
-	struct interactor *interactor = new_interactor(ttyfd);
-	if (!interactor) {
-		perror("no interactor");
+	struct renderer *renderer = new_renderer(ttyfd);
+	if (!renderer) {
+		perror("no renderer");
 fallback2:
 		close(sv[0]);
 		close(sv[1]);
 		goto fallback;
 	}
 
-	struct cardserver *srv = cardserver(interactor, sv[0]);
+	struct cardserver *srv = cardserver(renderer, sv[0]);
 	if (!srv) {
 		goto fallback2;
 	}

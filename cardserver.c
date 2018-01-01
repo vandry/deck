@@ -10,7 +10,7 @@
 #include "cardmux.h"
 #include "stub.h"
 #include "util.h"
-#include "interactor.h"
+#include "renderer.h"
 
 void
 claim_tty(struct cardserver *srv, struct cardclient *c)
@@ -35,14 +35,14 @@ claim_tty(struct cardserver *srv, struct cardclient *c)
 	pthread_mutex_unlock(&(srv->tty_next_owner_lock));
 
 	if (c != NULL) {
-		srv->interactor->intf->claim(srv->interactor, c->card_number);
+		srv->renderer->intf->claim(srv->renderer, c->card_name);
 	}
 }
 
 void
 give_up_tty(struct cardserver *srv)
 {
-	srv->interactor->intf->claim_none(srv->interactor);
+	srv->renderer->intf->claim_none(srv->renderer);
 
 	pthread_mutex_lock(&(srv->tty_owner_check_lock));
 	srv->tty_owner = NULL;
@@ -56,18 +56,18 @@ cardserver_quit(struct cardserver *srv)
 {
 	/* Force anything that already has the tty to give it up */
 	claim_tty(srv, NULL);
-	srv->interactor->intf->destroy(srv->interactor);
+	srv->renderer->intf->destroy(srv->renderer);
 }
 
 static void
-input_callback(void *data, size_t count, int card_number, void *arg)
+input_callback(void *data, size_t count, const char *card_name, void *arg)
 {
 	struct cardserver *srv = (struct cardserver *)arg;
 	struct cardclient *card;
 
 	pthread_mutex_lock(&(srv->clients_lock));
 	for (card = srv->clients_head; card; card = card->next) {
-		if (card->card_number == card_number) break;
+		if (0 == strcmp(card_name, card->card_name)) break;
 	}
 	if (card) {
 		card_input(card, data, count);
@@ -75,12 +75,12 @@ input_callback(void *data, size_t count, int card_number, void *arg)
 	pthread_mutex_unlock(&(srv->clients_lock));
 
 	if (!card) {
-		fprintf(stderr, "Input for unknown card %d\n", card_number);
+		fprintf(stderr, "Input for unknown card \"%s\"\n", card_name);
 	}
 }
 
 struct cardserver *
-cardserver(struct interactor *interactor, int initial_client)
+cardserver(struct renderer *renderer, int initial_client)
 {
 	struct cardserver *srv;
 
@@ -91,8 +91,8 @@ cardserver(struct interactor *interactor, int initial_client)
 	}
 	memset(srv, 0, sizeof(*srv));
 	pthread_mutex_init(&(srv->clients_lock), NULL);
-	srv->interactor = interactor;
-	interactor->intf->set_input_callback(interactor, input_callback, srv);
+	srv->renderer = renderer;
+	renderer->intf->set_input_callback(renderer, input_callback, srv);
 	pthread_mutex_init(&(srv->tty_owner_check_lock), NULL);
 	pthread_mutex_init(&(srv->tty_owner_lock), NULL);
 	pthread_mutex_init(&(srv->tty_next_owner_lock), NULL);

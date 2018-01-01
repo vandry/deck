@@ -9,9 +9,9 @@
 */
 
 struct cardserver;
-struct interactor;
+struct renderer;
 
-struct cardserver *cardserver(struct interactor *, int initial_client);
+struct cardserver *cardserver(struct renderer *, int initial_client);
 void cardserver_quit(struct cardserver *);
 
 #endif /* _DECK_CARDSERVER_H */

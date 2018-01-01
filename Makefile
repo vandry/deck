@@ -10,21 +10,21 @@ all: deck vtedeck card
 clean:
 	rm -f $(ALL_OBJS) deck vtedeck card
 
-deck.o: deck.c util.h cardclient.h cardserver.h interactor.h
+deck.o: deck.c util.h cardclient.h cardserver.h renderer.h
 
 util.o: util.c util.h
 
 cardclient.o: cardclient.c cardclient.h util.h global.h
 
-cardserver.o: cardserver.c cardserver.h cardmux.h stub.h util.h interactor.h
+cardserver.o: cardserver.c cardserver.h cardmux.h stub.h util.h renderer.h
 
-stub.o: stub.c cardmux.h stub.h util.h interactor.h
+stub.o: stub.c cardmux.h stub.h util.h renderer.h
 
-tty.o: tty.c interactor.h util.h
+tty.o: tty.c renderer.h util.h
 
 card.o: card.c cardclient.h global.h
 
-vte.o: vte.c interactor.h
+vte.o: vte.c renderer.h
 	$(CC) -c $(CFLAGS) `pkg-config --cflags vte` -o $@ vte.c
 
 deck: $(DECK_OBJS) tty.o

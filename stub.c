@@ -8,7 +8,7 @@
 #include "cardmux.h"
 #include "stub.h"
 #include "util.h"
-#include "interactor.h"
+#include "renderer.h"
 
 /* Give up the tty no matter what this amount of time after
    writing anything to it. This will cause us to emit the
@@ -191,13 +191,13 @@ copy_from_client(void *arg)
 		try_writing = 0;
 		if (buf_fill && i_own_the_tty) {
 			/* (Note that if buf_fill > 0, i_own_the_tty is guaranteed already) */
-			int using_poll = c->srv->interactor->intf->check_ready_for_output(
-				c->srv->interactor, &(pollfd[nfds])
+			int using_poll = c->srv->renderer->intf->check_ready_for_output(
+				c->srv->renderer, &(pollfd[nfds])
 			);
 			if (using_poll) {
 				nfds++;
 			} else {
-				/* The interactor told us it was ready without needing to poll. */
+				/* The renderer told us it was ready without needing to poll. */
 				timeout = 0;
 				try_writing = 1;
 			}
@@ -241,7 +241,7 @@ copy_from_client(void *arg)
 				}
 				buf_fill += nread;
 			} else {
-				/* must be the interactor */
+				/* must be the renderer */
 				if (pollfd[n].revents & POLLHUP) {
 					tty_running = 0;
 					break;
@@ -250,7 +250,7 @@ copy_from_client(void *arg)
 			}
 		}
 		if (try_writing) {
-			size_t nwritten = c->srv->interactor->intf->write(c->srv->interactor, &(buf[0]), buf_fill);
+			size_t nwritten = c->srv->renderer->intf->write(c->srv->renderer, &(buf[0]), buf_fill);
 			if (nwritten < 0) {
 				perror("write to tty");
 				tty_running = 0;
@@ -326,6 +326,9 @@ new_card(void *arg, int fd, const char *name)
 		return;
 	}
 	memset(c, 0, sizeof(*c));
+	c->card_name = (const char *)(&(c[1]));
+	memcpy((char *)(&(c[1])), name, namelen-1);
+	((char *)(&(c[1])))[namelen-1] = 0;
 	c->sock = fd;
 	c->next = NULL;
 	c->srv = srv;
@@ -342,7 +345,6 @@ new_card(void *arg, int fd, const char *name)
 	c->notify_pipe_read = pipefd[0];
 
 	pthread_mutex_lock(&(srv->clients_lock));
-	c->card_number = srv->next_card_number++;
 	c->prev = srv->clients_tail;
 	if (srv->clients_tail) {
 		srv->clients_tail->next = c;

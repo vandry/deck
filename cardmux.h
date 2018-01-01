@@ -8,14 +8,14 @@
 struct cardclient {
 	struct cardclient *next;
 	struct cardclient *prev;
-        int card_number;
+	const char *card_name;
 
 	/* For other clients to ask for ownership of the tty */
 	int notify_pipe;
 
 	/* private */
 	struct cardserver *srv;
-        int sock;
+	int sock;
 	int notify_pipe_read;
 
 	pthread_mutex_t input_lock;
@@ -27,12 +27,11 @@ struct cardclient {
 };
 
 struct cardserver {
-	struct interactor *interactor;
+	struct renderer *renderer;
 
 	pthread_mutex_t clients_lock;
-        struct cardclient *clients_head;
-        struct cardclient *clients_tail;
-	int next_card_number;
+	struct cardclient *clients_head;
+	struct cardclient *clients_tail;
 
 	pthread_mutex_t tty_owner_check_lock;
 	struct cardclient *tty_owner;
