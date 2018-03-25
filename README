@@ -1,4 +1,4 @@
-This is a proff-of-concept thing so that commands you run in a shell
+This is a proof-of-concept thing so that commands you run in a shell
 each get their own input&output zone, called cards, instead of
 everything being mixed into a single byte stream on a single tty. 
 They are called cards because one possible user interface is that
