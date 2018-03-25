@@ -40,3 +40,8 @@ Example:
 $ ./deck sh
 $ ./card ls
 (output of ls goes in a separate card)
+
+
+Building:
+
+On Debian-based systems, you will need to install libvte-dev.
